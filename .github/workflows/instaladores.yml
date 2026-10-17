@@ -13,7 +13,8 @@ jobs:
         include:
           - os: macos-15
             alvo: --mac --arm64
-          - os: macos-15-intel
+          # O .dmg de Intel sai do Mac com chip Apple: no runner Intel o dmgbuild quebra
+          - os: macos-15
             alvo: --mac --x64
           - os: windows-latest
             alvo: --win --x64
@@ -41,7 +42,7 @@ jobs:
         run: npx electron-builder --publish never ${{ matrix.alvo }}
       - uses: actions/upload-artifact@v4
         with:
-          name: instalador-${{ matrix.os }}
+          name: instalador-${{ matrix.os }}-${{ strategy.job-index }}
           if-no-files-found: error
           path: |
             desktop/dist/*.dmg
