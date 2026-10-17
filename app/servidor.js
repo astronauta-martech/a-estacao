@@ -1963,6 +1963,8 @@ function compararVersoes(a, b) {
 // Commit local: só quando a pasta do projeto é um clone (tem .git), para nunca
 // chamar o git de um Mac sem as ferramentas de linha de comando
 const ehClone = () => fs.existsSync(path.join(RAIZ_PROJETO, '.git'));
+// Aberta pelo app de mesa (instalador): atualizar é baixar o instalador novo
+const APP_INSTALADO = process.env.ESTACAO_APP === '1';
 let commitLocal = { valor: null, lidoEm: 0 };
 let lendoCommit = null;
 function lerCommit() {
@@ -2059,6 +2061,8 @@ async function responderVersao(res, forcar = false) {
     pasta: RAIZ_PROJETO,
     comando: WINDOWS ? `powershell -ExecutionPolicy Bypass -File "${path.join(RAIZ_PROJETO, 'atualizar.ps1')}"` : `cd ${entreAspas(RAIZ_PROJETO)} && ./atualizar.sh`,
     windows: WINDOWS,
+    instalado: APP_INSTALADO,
+    urlDownload: `https://github.com/${REPO_NOVIDADES}/releases/latest`,
     novidades,
     temVersaoNova,
     versaoNova: temVersaoNova ? ultima.versao : null,

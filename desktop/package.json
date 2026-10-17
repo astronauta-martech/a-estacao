@@ -1,0 +1,91 @@
+{
+  "name": "a-estacao-desktop",
+  "productName": "A Estação",
+  "version": "0.9.0",
+  "private": true,
+  "description": "A Estação: as sessões do Claude Code e do Codex como astronautas numa estação 3D, rodando só na sua máquina.",
+  "license": "MIT",
+  "author": "Eduardo Campos",
+  "homepage": "https://github.com/eueduardocampos/a-estacao",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "digital.astronauta.estacao",
+    "productName": "A Estacao",
+    "artifactName": "A-Estacao-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "app",
+        "filter": [
+          "**/*",
+          "!teste-*.mjs",
+          "!logs/**"
+        ]
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.icns",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "CFBundleDisplayName": "A Estação"
+      }
+    },
+    "dmg": {
+      "title": "A Estação ${version}"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "A Estação",
+      "uninstallDisplayName": "A Estação"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Development",
+      "icon": "build/icon.png",
+      "executableName": "a-estacao",
+      "maintainer": "Eduardo Campos",
+      "desktop": {
+        "entry": {
+          "Name": "A Estação",
+          "Comment": "As sessões do Claude Code e do Codex como astronautas numa estação 3D"
+        }
+      }
+    }
+  },
+  "allowScripts": {
+    "electron@44.5.1": true,
+    "electron-winstaller": false
+  }
+}

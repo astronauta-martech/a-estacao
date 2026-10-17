@@ -54,3 +54,6 @@ criar-app.sh
 .DS_Store
 ._*
 Icon?
+
+# App de mesa: dependências e instaladores gerados
+desktop/dist/

@@ -1,0 +1,68 @@
+name: Instaladores
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            alvo: --mac --arm64
+          - os: macos-15-intel
+            alvo: --mac --x64
+          - os: windows-latest
+            alvo: --win --x64
+          - os: ubuntu-22.04
+            alvo: --linux --x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Dependências da Estação
+        run: npm ci --prefix app --no-audit --no-fund
+      - name: O servidor liga e responde
+        shell: bash
+        run: |
+          PORTA=4400 ESTACAO_NOVIDADES=nao node app/servidor.js > servidor.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4400/api/versao > /dev/null && break; sleep 1; done
+          curl -sf http://localhost:4400/api/versao
+          curl -sf -o /dev/null http://localhost:4400/icone-64.png
+      - name: Dependências do app de mesa
+        run: npm ci --prefix desktop --no-audit --no-fund
+      - name: Gerar instalador
+        working-directory: desktop
+        run: npx electron-builder --publish never ${{ matrix.alvo }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: instalador-${{ matrix.os }}
+          if-no-files-found: error
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.exe
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+  publicar:
+    needs: app
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: instaladores
+      - name: Publicar só depois que os quatro instaladores saírem
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          mapfile -d '' arquivos < <(find instaladores -type f -print0)
+          gh release create "$TAG" "${arquivos[@]}" --repo "${{ github.repository }}" \
+            --title "A Estação ${TAG#v}" --notes-file "docs/release-$TAG.md" --verify-tag

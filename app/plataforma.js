@@ -1,4 +1,4 @@
-// O que muda entre macOS e Windows, num lugar só: onde o app desktop do Claude
+// O que muda entre macOS, Windows e Linux, num lugar só: onde o app desktop do Claude
 // guarda os arquivos, como abrir um endereço claude:// ou codex://, e a sonda
 // que no Windows faz o papel do ps, do lsof e do ioreg (sonda-windows.ps1).
 
@@ -9,11 +9,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const WINDOWS = process.platform === 'win32';
+export const LINUX = process.platform === 'linux';
 const PASTA_APP = path.dirname(fileURLToPath(import.meta.url));
 
 // Pasta de dados do app desktop do Claude. No Windows a versão da loja (MSIX) grava
 // dentro do pacote; a pasta comum (%APPDATA%\Claude) vale quando existe.
 function pastaDoDesktop() {
+  if (LINUX) return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'Claude');
   if (!WINDOWS) return path.join(os.homedir(), 'Library', 'Application Support', 'Claude');
   const roaming = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming');
   const comum = path.join(roaming, 'Claude');
@@ -36,6 +38,7 @@ export function abrirUrl(url, pronto) {
     const rundll = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'rundll32.exe');
     return execFile(rundll, ['url.dll,FileProtocolHandler', url], { timeout: 5000, windowsHide: true }, pronto);
   }
+  if (LINUX) return execFile('xdg-open', [url], { timeout: 5000 }, pronto);
   return execFile('/usr/bin/open', [url], { timeout: 5000 }, pronto);
 }
 
